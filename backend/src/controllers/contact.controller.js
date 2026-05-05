@@ -49,9 +49,19 @@ const deleteContact = async (req, res) => {
     }
 }
 
+const getAllContacts = async (req, res) => {
+    try{
+        const contacts = await contactModel.find();
+        res.status(200).json(contacts);
+    }catch (error) {
+        res.status(500).json({ message: 'Error fetching contacts: ' + error.message });
+    }
+}
+
 module.exports = {
     createContact,
     updateContact,
     deleteContact,
-    healthCheck
+    healthCheck,
+    getAllContacts
 };
