@@ -27,25 +27,30 @@ const handleLogout = () => {
 }
 </script>
 <template>
-    <nav class="navbar">
-      <div class="navbar-brand" v-if="loggedInUser">
-        <router-link to="/home" class="username">{{ loggedInUser }}</router-link>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <router-link to="/home" class="navbar-brand username d-flex align-items-center"><i class="bi bi-person-circle fs-5"></i>&nbsp;&nbsp;{{ loggedInUser }}</router-link>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <router-link class="p-0 px-2 fs-5 nav-link" to="/contact">Contact</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="p-0 px-2 fs-5 nav-link" to="/about">About</router-link>
+            </li>
+          </ul>
+          <a href="#" @click.prevent="handleLogout" class="logout btn btn-outline-danger"><i class="bi bi-box-arrow-right"></i>&nbsp;Logout</a>
+        </div>
       </div>
-      <ul class="navbar-menu">
-        <li>
-          <router-link to="/contact">Contact</router-link>
-        </li>
-        <li>
-          <router-link to="/about">About</router-link>
-        </li>
-        <li><a href="#" @click.prevent="handleLogout" class="logout">Logout</a></li>
-      </ul>
     </nav>
 </template>
 <style>
 .navbar {
-  background: #333;
-  color: white;
+  background: linear-gradient(90deg,#58abd8,white);
+  color: #fff;
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
