@@ -7,7 +7,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import "@fontsource/poppins"; // Defaults to weight 400
 import "@fontsource/poppins/700.css"; // Optional: specific weights
 
-
 const app = createApp(App)
 app.use(Router)
 app.mount('#app')
