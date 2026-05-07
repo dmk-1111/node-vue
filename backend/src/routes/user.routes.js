@@ -1,9 +1,10 @@
 const router = require('express').Router();
 const { signUpValidate, signInValidate } = require('../middlewares/authValidator');
-const { signUp, signIn } = require('../controllers/user.controller');
+const { signUp, signIn, refreshToken } = require('../controllers/user.controller');
 
 router.post('/signup', signUpValidate, signUp);
 router.post('/signin', signInValidate, signIn);
+router.post('/refresh-token', refreshToken);
 router.get('/health', (req,res) => {
     res.send('Hello World');
 });

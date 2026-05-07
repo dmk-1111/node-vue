@@ -1,3 +1,4 @@
+const { ref } = require('joi');
 const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
     name: {
@@ -12,6 +13,9 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    refreshToken: {
+        type: String,
     }
 }, { timestamps: true });
 
