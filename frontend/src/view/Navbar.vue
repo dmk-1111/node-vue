@@ -1,7 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
-import { inject } from 'vue'
 
 const router = useRouter()
 const loggedInUser = ref(null)

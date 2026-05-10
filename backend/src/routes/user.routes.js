@@ -4,7 +4,7 @@ const { signUp, signIn, refreshToken } = require('../controllers/user.controller
 
 router.post('/signup', signUpValidate, signUp);
 router.post('/signin', signInValidate, signIn);
-router.post('/refresh-token', refreshToken);
+router.post('/refresh', refreshToken);
 router.get('/health', (req,res) => {
     res.send('Hello World');
 });

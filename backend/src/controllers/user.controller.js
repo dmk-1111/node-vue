@@ -22,7 +22,7 @@ const signUp = async (req, res) => {
                 secure: false, // true in production (HTTPS)
                 sameSite: "strict",
             });
-            res.status(201).json({ message: 'User created successfully', token, userLogged: newUser.name });
+            res.status(201).json({ message: 'User created successfully', token, refreshToken, userLogged: newUser.name, id: newUser._id});
         }
     } catch (error) {
         res.status(500).json({ message: 'error signing up:' + error.message });
@@ -49,9 +49,9 @@ const signIn = async (req, res) => {
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: false, // true in production (HTTPS)
-                sameSite: "strict",
+                sameSite: "strict", // prevent CSRF
             });
-            res.status(200).json({ message: 'Signed in successfully', token, name: user.name });
+            res.status(200).json({ message: 'Signed in successfully', token, refreshToken, name: user.name, id: user._id });
         }
     } catch (error) {
         res.status(500).json({ message: 'error signing in:' + error.message });
@@ -61,24 +61,29 @@ const signIn = async (req, res) => {
 const refreshToken = async (req, res) => {
    try{
         const token = req.cookies.refreshToken;
+        const _id = req.cookies._id;
 
         if (!token) return res.sendStatus(401);
 
-        jwt.verify(token, process.env.REFRESH_SECRET, (err, user) => {
-            if (err) return res.sendStatus(403);
-
-            const newAccessToken = generateAccessToken({
-                email: user.email,
-                password: user.password
+        const users = await userModel.findById(_id);
+        if(users && users.refreshToken === token){
+            jwt.verify(token, process.env.REFRESH_SECRET, (err, user) => {
+                if (err) return res.sendStatus(403);
+    
+                const newAccessToken = generateAccessToken({
+                    email: user.email,
+                    password: user.password
+                });
+    
+                res.json({ accessToken: newAccessToken });
             });
-
-            res.json({ accessToken: newAccessToken });
-        });
+        }else{
+            return res.sendStatus(403).json({ message: 'error invalid token:' + error.message });
+        }
    }catch(error){
         res.status(500).json({ message: 'error refreshing token:' + error.message });
    }
 }
-
 
 function generateAccessToken(user) {
   return jwt.sign(user, process.env.JWT_SECRET, { expiresIn: "1h" });

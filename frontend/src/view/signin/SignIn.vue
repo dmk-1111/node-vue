@@ -1,7 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router';
-import { inject } from 'vue'
 
 const router = useRouter()
 const isSignup = ref(false)
@@ -21,10 +20,11 @@ const submitSignup = async (e) => {
     body: JSON.stringify({ name, email, password })
   });
   const result = await response.json();
-  const { message, token, refreshToken, userLogged } = result;
+  const { message, token, refreshToken, userLogged, _id } = result;
   if (response.ok) {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userName', userLogged);
+    $cookies.set('_id', _id, '1d');
     $cookies.set('refreshToken', refreshToken, '1d');
     alert(`${message}`);
     setTimeout(() => {
@@ -47,10 +47,11 @@ const submitSignin = async (e) => {
     body: JSON.stringify({ email, password })
   });
   const result = await response.json();
-  const { message, token, refreshToken, name } = result;
+  const { message, token, refreshToken, name, _id } = result;
   if (response.ok) {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userName', name);
+    $cookies.set('_id', _id, '1d');
     $cookies.set('refreshToken', refreshToken, '1d');
     alert(`${message}`);
     setTimeout(() => {

@@ -1,10 +1,8 @@
 <script setup>
 import Navbar from './Navbar.vue';
-import '../assets/js/contact.js';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import $ from 'jquery';
-import { inject } from 'vue'
 
 const $cookies = inject('$cookies')
 const router = useRouter()
@@ -18,16 +16,19 @@ const newContact = ref({
 })
 
 onMounted(async () => {
+    await getDataFromTable();
     token.value = localStorage.getItem('authToken')
 
     if (!token.value) {
-        $cookies.remove('refreshToken');
         router.replace('/signin')
         return
     }
+    await displayAllContacts();
+});
 
+const displayAllContacts = async () => {
     try {
-        let res = await fetch('http://localhost:8080/api/contact/all', {
+        let response = await fetch('http://localhost:8080/api/contact/all', {
             headers: {
                 'Authorization': `Bearer ${token.value}`
             },
@@ -35,28 +36,21 @@ onMounted(async () => {
         })
 
         // handle unauthorized (token invalid/expired)
-        if (res.status === 401) {
+        if (response.status === 401) {
             await refreshToken() // try to refresh token
-            // localStorage.removeItem('authToken')
-            // router.replace('/signin')
-            // return
-            res = await fetch('http://localhost:8080/api/contact/all', {
+            response = await fetch('http://localhost:8080/api/contact/all', {
                 headers: {
                     'Authorization': `Bearer ${token.value}`
                 },
                 credentials: "include"
             })
         }
-
-        const data = await res.json()
+        const data = await response.json()
         contacts.value = data;
-        console.log('Fetched contact data:', contacts.value)
-
     } catch (err) {
         console.error('Error fetching contact data:', err)   
     }
-})
-
+}
 async function refreshToken() {
   const res = await fetch("http://localhost:8080/api/auth/refresh", {
     method: "POST",
@@ -64,16 +58,39 @@ async function refreshToken() {
   });
 
   if(res.status == 403){
-    alert('Session expired. Please sign in again.');
-    localStorage.removeItem('authToken');
-    $cookies.remove('refreshToken');
-    router.replace('/signin');
+    await alertMessage();
     return;
   }
-
   const data = await res.json();
   token.value = data.accessToken;
-  console.log("New access token:", token.value);
+}
+
+const alertMessage =  async () => {
+    alert('Session expired. Please sign in again.');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userName');
+    $cookies.remove('refreshToken');
+    router.replace('/signin');
+}
+const getDataFromTable = async () => {
+    $(() => {
+        $('.table-responsive .table').on('click', '.btn-edit', function() {
+            const id = $(this).data('id');
+            const name = $(this).closest('tr').find('td.td_name').text();
+            const email = $(this).closest('tr').find('td.td_email').text();
+            const phone = $(this).closest('tr').find('td.td_phone').text();
+            const detail = $(this).closest('tr').find('td.td_detail').text();
+            $('#modalEdit #e_id').val(id);
+            $('#modalEdit #e_name').val(name);
+            $('#modalEdit #e_email').val(email);
+            $('#modalEdit #e_phone').val(phone);
+            $('#modalEdit #e_detail').val(detail);
+        });
+        $('.table-responsive .table').on('click', '.btn-del', function() {
+            const id = $(this).data('id');
+            $('#modalDelete #d_id').val(id);
+        });
+    });
 }
 
 const submitCreateContact = async (e) => {
@@ -81,22 +98,32 @@ const submitCreateContact = async (e) => {
     try{
         const {name, email, phone, detail} = newContact.value;
         const url = "http://localhost:8080/api/contact/create";
-        const response = await fetch(url, {
+        let response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token.value}`
             },
+            credentials: "include",
             body: JSON.stringify({ name, email, phone, detail })
         });
+        if(response.status === 401) {
+            await refreshToken() // try to refresh token
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token.value}`
+                },
+                credentials: "include",
+                body: JSON.stringify({ name, email, phone, detail })
+            });
+        }
         if(response.ok) {
             alert('Contact created successfully!');
             setTimeout(() => {
                 router.go(0); // Refresh the page to show the new contact
             }, 1000);
-        } else {
-            const errorData = await response.json();
-            alert(`Failed to create contact: ${errorData.message}`);
         }
     }catch (err) {
         console.error('Error creating contact:', err)
@@ -112,22 +139,32 @@ const submitEditContact = async (e) => {
         const phone = $('#e_phone').val();
         const detail = $('#e_detail').val();
         const url = `http://localhost:8080/api/contact/update/${id}`;
-        const response = await fetch(url, {
+        let response = await fetch(url, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token.value}`
             },
+            credentials: "include",
             body: JSON.stringify({ name, email, phone, detail })
         });
+        if(response.status === 401) {
+            await refreshToken() // try to refresh token
+            response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token.value}`
+                },
+                credentials: "include",
+                body: JSON.stringify({ name, email, phone, detail })
+            });
+        }
         if(response.ok) {
             alert('Contact updated successfully!');
             setTimeout(() => {
                 router.go(0); // Refresh the page to show the updated contact
             }, 1000);
-        } else {
-            const errorData = await response.json();
-            alert(`Failed to update contact: ${errorData.message}`);
         }
     }catch (err) {
         console.error('Error updating contact:', err)
@@ -138,25 +175,33 @@ const submitDeleteContact = async (e) => {
     e.preventDefault();
     const id = $('#d_id').val();
     const url = `http://localhost:8080/api/contact/delete/${id}`;
-    await fetch(url, {
+    let response = await fetch(url, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token.value}`
-        }
-    })
-    .then(response => {
-        if(response.ok) {
-            alert('Contact deleted successfully!');
-            setTimeout(() => {
-                router.go(0); // Refresh the page to remove the deleted contact
-            }, 1000);
-        } else {
-            alert('Failed to delete contact');
-        }
-    })
-    .catch(err => {
-        console.error('Error deleting contact:', err)
-    })
+        },
+        credentials: "include"
+    });
+
+    if(response.status === 401) {
+        await refreshToken() // try to refresh token
+        response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token.value}`
+            },
+            credentials: "include"
+        });
+    }
+
+    if(response.ok) {
+        alert('Contact deleted successfully!');
+        setTimeout(() => {
+            router.go(0); // Refresh the page to remove the deleted contact
+        }, 1000);
+    } else {
+        alert('Failed to delete contact');
+    }
 }
 </script>
 
