@@ -28,7 +28,7 @@ onMounted(async () => {
 
 const displayAllContacts = async () => {
     try {
-        let response = await fetch('http://localhost:8080/api/contact/all', {
+        let response = await fetch('https://node-vue-gamma.vercel.app/_/backend/api/contact/all', {
             headers: {
                 'Authorization': `Bearer ${token.value}`
             },
@@ -38,7 +38,7 @@ const displayAllContacts = async () => {
         // handle unauthorized (token invalid/expired)
         if (response.status === 401) {
             await refreshToken() // try to refresh token
-            response = await fetch('http://localhost:8080/api/contact/all', {
+            response = await fetch('https://node-vue-gamma.vercel.app/_/backend/api/contact/all', {
                 headers: {
                     'Authorization': `Bearer ${token.value}`
                 },
@@ -52,7 +52,7 @@ const displayAllContacts = async () => {
     }
 }
 async function refreshToken() {
-  const res = await fetch("http://localhost:8080/api/auth/refresh", {
+  const res = await fetch("https://node-vue-gamma.vercel.app/_/backend/api/auth/refresh", {
     method: "POST",
     credentials: "include",
   });
@@ -97,7 +97,7 @@ const submitCreateContact = async (e) => {
     e.preventDefault();
     try{
         const {name, email, phone, detail} = newContact.value;
-        const url = "http://localhost:8080/api/contact/create";
+        const url = "https://node-vue-gamma.vercel.app/_/backend/api/contact/create";
         let response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -138,7 +138,7 @@ const submitEditContact = async (e) => {
         const email = $('#e_email').val();
         const phone = $('#e_phone').val();
         const detail = $('#e_detail').val();
-        const url = `http://localhost:8080/api/contact/update/${id}`;
+        const url = `https://node-vue-gamma.vercel.app/_/backend/api/contact/update/${id}`;
         let response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -174,7 +174,7 @@ const submitEditContact = async (e) => {
 const submitDeleteContact = async (e) => {
     e.preventDefault();
     const id = $('#d_id').val();
-    const url = `http://localhost:8080/api/contact/delete/${id}`;
+    const url = `https://node-vue-gamma.vercel.app/_/backend/api/contact/delete/${id}`;
     let response = await fetch(url, {
         method: 'DELETE',
         headers: {

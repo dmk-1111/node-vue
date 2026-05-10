@@ -12,7 +12,7 @@ const $cookies = inject('$cookies')
 const submitSignup = async (e) => {
   e.preventDefault();
   const { name, email, password } = signup.value;
-  const url = 'http://localhost:8080/api/auth/signup';
+  const url = 'https://node-vue-gamma.vercel.app/_/backend/api/auth/signup';
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -39,7 +39,7 @@ const submitSignup = async (e) => {
 const submitSignin = async (e) => {
   e.preventDefault();
   const { email, password } = signin.value;
-  const url = 'http://localhost:8080/api/auth/signin';
+  const url = 'https://node-vue-gamma.vercel.app/_/backend/api/auth/signin';
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
