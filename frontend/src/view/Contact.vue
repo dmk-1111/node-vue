@@ -4,7 +4,9 @@ import '../assets/js/contact.js';
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import $ from 'jquery';
+import { inject } from 'vue'
 
+const $cookies = inject('$cookies')
 const router = useRouter()
 const contacts = ref('')
 const token = ref('')
@@ -15,34 +17,35 @@ const newContact = ref({
     detail: ''
 })
 
-const editContact = ref({
-    _id: '',
-    name: '',
-    email: '',
-    phone: '',
-    detail: ''
-})
-
 onMounted(async () => {
     token.value = localStorage.getItem('authToken')
 
     if (!token.value) {
+        $cookies.remove('refreshToken');
         router.replace('/signin')
         return
     }
 
     try {
-        const res = await fetch('http://localhost:8080/api/contact/all', {
+        let res = await fetch('http://localhost:8080/api/contact/all', {
             headers: {
                 'Authorization': `Bearer ${token.value}`
-            }
+            },
+            credentials: "include"
         })
 
         // handle unauthorized (token invalid/expired)
         if (res.status === 401) {
-            localStorage.removeItem('authToken')
-            router.replace('/signin')
-            return
+            await refreshToken() // try to refresh token
+            // localStorage.removeItem('authToken')
+            // router.replace('/signin')
+            // return
+            res = await fetch('http://localhost:8080/api/contact/all', {
+                headers: {
+                    'Authorization': `Bearer ${token.value}`
+                },
+                credentials: "include"
+            })
         }
 
         const data = await res.json()
@@ -53,6 +56,25 @@ onMounted(async () => {
         console.error('Error fetching contact data:', err)   
     }
 })
+
+async function refreshToken() {
+  const res = await fetch("http://localhost:8080/api/auth/refresh", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if(res.status == 403){
+    alert('Session expired. Please sign in again.');
+    localStorage.removeItem('authToken');
+    $cookies.remove('refreshToken');
+    router.replace('/signin');
+    return;
+  }
+
+  const data = await res.json();
+  token.value = data.accessToken;
+  console.log("New access token:", token.value);
+}
 
 const submitCreateContact = async (e) => {
     e.preventDefault();

@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { inject } from 'vue'
 
 const router = useRouter()
 const loggedInUser = ref(null)
 const token = ref(null)
+const $cookies = inject('$cookies')
 
 onMounted(() => {
   loggedInUser.value = localStorage.getItem('userName')
@@ -20,6 +22,7 @@ onMounted(() => {
 const handleLogout = () => {
   localStorage.removeItem('authToken')
   localStorage.removeItem('userName')
+  $cookies.remove('refreshToken')
 
   setTimeout(() => {
     router.push('/signin')

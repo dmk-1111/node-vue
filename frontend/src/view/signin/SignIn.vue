@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router';
+import { inject } from 'vue'
 
 const router = useRouter()
 const isSignup = ref(false)
 const signup = ref({ name: '', email: '', password: '' })
 const signin = ref({ email: '', password: '' })
 const message = ref('')
+const $cookies = inject('$cookies')
 
 const submitSignup = async (e) => {
   e.preventDefault();
@@ -15,13 +17,15 @@ const submitSignup = async (e) => {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: "include",
     body: JSON.stringify({ name, email, password })
   });
   const result = await response.json();
-  const { message, token, userLogged } = result;
+  const { message, token, refreshToken, userLogged } = result;
   if (response.ok) {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userName', userLogged);
+    $cookies.set('refreshToken', refreshToken, '1d');
     alert(`${message}`);
     setTimeout(() => {
       router.push('/home');
@@ -39,13 +43,15 @@ const submitSignin = async (e) => {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: "include",
     body: JSON.stringify({ email, password })
   });
   const result = await response.json();
-  const { message, token, name } = result;
+  const { message, token, refreshToken, name } = result;
   if (response.ok) {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userName', name);
+    $cookies.set('refreshToken', refreshToken, '1d');
     alert(`${message}`);
     setTimeout(() => {
       router.push('/home');
